@@ -1,31 +1,15 @@
 #!/usr/bin/python3
+import random
 import sys
+from time import sleep
+import datetime
 
-lines = []
-total_size = 0
-status_counts = {}
-
-try:
-    for line in sys.stdin:
-        line = line.strip()
-        if line.startswith('"GET /projects/260 HTTP/1.1"'):
-            parts = line.split()
-            if len(parts) == 7:
-                status_code = parts[5]
-                file_size = int(parts[6])
-                lines.append(line)
-                total_size += file_size
-                if status_code.isdigit():
-                    status_code = int(status_code)
-                    status_counts[status_code] = status_counts.get(status_code, 0) + 1
-        if len(lines) == 10:
-            print(f"Total file size: {total_size}")
-            for status_code in sorted(status_counts.keys()):
-                print(f"{status_code}: {status_counts[status_code]}")
-            print()
-            lines = []
-            status_counts = {}
-except KeyboardInterrupt:
-    print(f"Total file size: {total_size}")
-    for status_code in sorted(status_counts.keys()):
-        print(f"{status_code}: {status_counts[status_code]}")
+for i in range(10000):
+    sleep(random.random())
+    sys.stdout.write("{:d}.{:d}.{:d}.{:d} - [{}] \"GET /projects/260 HTTP/1.1\" {} {}\n".format(
+        random.randint(1, 255), random.randint(1, 255), random.randint(1, 255), random.randint(1, 255),
+        datetime.datetime.now(),
+        random.choice([200, 301, 400, 401, 403, 404, 405, 500]),
+        random.randint(1, 1024)
+    ))
+    sys.stdout.flush()
