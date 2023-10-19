@@ -1,47 +1,31 @@
 #!/usr/bin/python3
-"""
-Module that parses a log and prints stats to stdout
-"""
-from sys import stdin
+import sys
 
-status_codes = {
-    "200": 0,
-    "301": 0,
-    "400": 0,
-    "401": 0,
-    "403": 0,
-    "404": 0,
-    "405": 0,
-    "500": 0
-}
+lines = []
+total_size = 0
+status_counts = {}
 
-size = 0
-
-
-def print_stats():
-    """Prints the accumulated logs"""
-    print("File size: {}".format(size))
-    for status in sorted(status_codes.keys()):
-        if status_codes[status]:
-            print("{}: {}".format(status, status_codes[status]))
-
-
-if __name__ == "__main__":
-    count = 0
-    try:
-        for line in stdin:
-            try:
-                items = line.split()
-                size += int(items[-1])
-                if items[-2] in status_codes:
-                    status_codes[items[-2]] += 1
-            except:
-                pass
-            if count == 9:
-                print_stats()
-                count = -1
-            count += 1
-    except KeyboardInterrupt:
-        print_stats()
-        raise
-    print_stats()
+try:
+    for line in sys.stdin:
+        line = line.strip()
+        if line.startswith('"GET /projects/260 HTTP/1.1"'):
+            parts = line.split()
+            if len(parts) == 7:
+                status_code = parts[5]
+                file_size = int(parts[6])
+                lines.append(line)
+                total_size += file_size
+                if status_code.isdigit():
+                    status_code = int(status_code)
+                    status_counts[status_code] = status_counts.get(status_code, 0) + 1
+        if len(lines) == 10:
+            print(f"Total file size: {total_size}")
+            for status_code in sorted(status_counts.keys()):
+                print(f"{status_code}: {status_counts[status_code]}")
+            print()
+            lines = []
+            status_counts = {}
+except KeyboardInterrupt:
+    print(f"Total file size: {total_size}")
+    for status_code in sorted(status_counts.keys()):
+        print(f"{status_code}: {status_counts[status_code]}")
